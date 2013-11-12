@@ -59,7 +59,6 @@ typedef void  (*FillTileWithTwoPointsFunc)(id, SEL, CGPoint, CGPoint);
 	self.maskedMatrix = nil;
 	CGColorSpaceRelease(self.colorSpace);
 	CGContextRelease(self.imageContext);
-    [super dealloc];
 }
 
 #pragma mark -
@@ -90,7 +89,7 @@ typedef void  (*FillTileWithTwoPointsFunc)(id, SEL, CGPoint, CGPoint);
 		tilesX = size.width / (2 * radius);
 		tilesY = size.height / (2 * radius);
 		
-		self.maskedMatrix = [[[Matrix alloc] initWithMax:MySizeMake(tilesX, tilesY)] autorelease];
+		self.maskedMatrix = [[Matrix alloc] initWithMax:MySizeMake(tilesX, tilesY)];
 		self.tilesFilled = 0;
     }
     return self;
