@@ -68,7 +68,6 @@
 	if(data){
 		free(data);
 	}
-	[super dealloc];
 }
 
 @end
