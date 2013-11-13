@@ -63,34 +63,42 @@ typedef void  (*FillTileWithTwoPointsFunc)(id, SEL, CGPoint, CGPoint);
 
 #pragma mark -
 
+- (void) initialize{
+    // Initialization code
+    self.userInteractionEnabled = YES;
+    self.backgroundColor = [UIColor clearColor];
+    self.imageMaskFilledDelegate = nil;
+    
+    CGSize size = self.image.size;
+    
+    // initalize bitmap context
+    self.colorSpace = CGColorSpaceCreateDeviceRGB();
+    self.imageContext = CGBitmapContextCreate(0,size.width,
+                                              size.height,
+                                              8,
+                                              size.width*4,
+                                              colorSpace,
+                                              kCGImageAlphaPremultipliedLast	);
+    CGContextDrawImage(self.imageContext, CGRectMake(0, 0, size.width, size.height), self.image.CGImage);
+    
+    int blendMode = kCGBlendModeClear;
+    CGContextSetBlendMode(self.imageContext, (CGBlendMode) blendMode);
+    
+    tilesX = size.width / (2 * radius);
+    tilesY = size.height / (2 * radius);
+    
+    self.maskedMatrix = [[Matrix alloc] initWithMax:MySizeMake(tilesX, tilesY)];
+    self.tilesFilled = 0;
+}
+
+- (void) awakeFromNib{
+    [super awakeFromNib];
+    [self initialize];
+}
+
 - (id)initWithFrame:(CGRect)frame image:(UIImage *)img {
     if (self = [super initWithFrame:frame]) {
-        // Initialization code
-		self.userInteractionEnabled = YES;
-		self.backgroundColor = [UIColor clearColor];
-		self.imageMaskFilledDelegate = nil;
-		
-		self.image = img;
-		CGSize size = self.image.size;
-		
-		// initalize bitmap context
-		self.colorSpace = CGColorSpaceCreateDeviceRGB();
-		self.imageContext = CGBitmapContextCreate(0,size.width, 
-												  size.height, 
-												  8, 
-												  size.width*4, 
-												  colorSpace, 
-												  kCGImageAlphaPremultipliedLast	);
-		CGContextDrawImage(self.imageContext, CGRectMake(0, 0, size.width, size.height), self.image.CGImage);
-		
-		int blendMode = kCGBlendModeClear;
-		CGContextSetBlendMode(self.imageContext, (CGBlendMode) blendMode);
-		
-		tilesX = size.width / (2 * radius);
-		tilesY = size.height / (2 * radius);
-		
-		self.maskedMatrix = [[Matrix alloc] initWithMax:MySizeMake(tilesX, tilesY)];
-		self.tilesFilled = 0;
+        [self initialize];
     }
     return self;
 }

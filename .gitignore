@@ -6,3 +6,5 @@
 *.plist
 
 *.xcscheme
+
+Classes/Utils/.DS_Store
