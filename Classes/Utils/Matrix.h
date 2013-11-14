@@ -40,6 +40,7 @@ MySize MySizeMake(size_t x,size_t y){
 }
 @interface Matrix : NSObject {
 	char * data;
+    long _dataSize;
 }
 
 -(id)initWithMaxX:(size_t)x MaxY:(size_t)y;

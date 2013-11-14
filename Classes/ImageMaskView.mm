@@ -29,7 +29,7 @@
 #import "PointTransforms.h"
 #import "Matrix.h"
 
-enum{ radius = 20 };
+enum{ radius = 30 };
 
 typedef void  (*FillTileWithPointFunc)( id, SEL, CGPoint );
 typedef void  (*FillTileWithTwoPointsFunc)(id, SEL, CGPoint, CGPoint);
@@ -73,18 +73,19 @@ typedef void  (*FillTileWithTwoPointsFunc)(id, SEL, CGPoint, CGPoint);
     
     // initalize bitmap context
     self.colorSpace = CGColorSpaceCreateDeviceRGB();
-    self.imageContext = CGBitmapContextCreate(0,size.width,
+    self.imageContext = CGBitmapContextCreate(0,
+                                              size.width,
                                               size.height,
                                               8,
-                                              size.width*4,
+                                              size.width * 4,
                                               colorSpace,
-                                              kCGImageAlphaPremultipliedLast	);
+                                              kCGImageAlphaPremultipliedLast);
     CGContextDrawImage(self.imageContext, CGRectMake(0, 0, size.width, size.height), self.image.CGImage);
     
     int blendMode = kCGBlendModeClear;
     CGContextSetBlendMode(self.imageContext, (CGBlendMode) blendMode);
     
-    tilesX = size.width / (2 * radius);
+    tilesX = size.width  / (2 * radius);
     tilesY = size.height / (2 * radius);
     
     self.maskedMatrix = [[Matrix alloc] initWithMax:MySizeMake(tilesX, tilesY)];
@@ -112,10 +113,12 @@ typedef void  (*FillTileWithTwoPointsFunc)(id, SEL, CGPoint, CGPoint);
 #pragma mark - UIResponder
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event{
+    [super touchesBegan:touches withEvent:event];
 	self.image = [self addTouches:touches];
 }
 
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event{
+    [super touchesMoved:touches withEvent:event];
 	self.image = [self addTouches:touches];
 }
 
@@ -182,9 +185,14 @@ typedef void  (*FillTileWithTwoPointsFunc)(id, SEL, CGPoint, CGPoint);
  */
 
 -(void)fillTileWithPoint:(CGPoint) point{
-	size_t x,y;	
-	x = point.x * self.maskedMatrix.max.x / self.image.size.width;
-	y = point.y * self.maskedMatrix.max.y / self.image.size.height;
+	size_t x,y;
+    
+    // Cap point to within our bounds just in case
+    point.x = MIN(point.x, self.image.size.width);
+    point.y = MIN(point.y, self.image.size.height);
+    
+	x = point.x * abs(self.maskedMatrix.max.x / self.image.size.width);
+	y = point.y * abs(self.maskedMatrix.max.y / self.image.size.height);
 	char value = [self.maskedMatrix valueForCoordinates:x y:y];
 	if(!value){
 		[self.maskedMatrix setValue:1 forCoordinates:x y:y];
