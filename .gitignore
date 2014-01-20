@@ -1,0 +1,10 @@
+
+*.xcworkspacedata
+
+*.xcuserstate
+
+*.plist
+
+*.xcscheme
+
+Classes/Utils/.DS_Store

@@ -33,6 +33,7 @@
 - (id)initWithMaxX:(size_t)x MaxY:(size_t)y {
 	if (self = [super init]) {
 		data = (char *) malloc(x * y);
+        _dataSize = x * y;
 		max = MySizeMake(x, y);
 		[self fillWithValue:0];
 	}
@@ -46,15 +47,32 @@
 #pragma mark -
 
 - (char)valueForCoordinates:(size_t)x y:(size_t)y {
+    long index = x + self.max.x * y;
+    
+    // Validate index
+    if (index >= _dataSize){
+        return 0;
+    }
 	return data[x + self.max.x * y];
 }
 
 - (void)setValue:(char)value forCoordinates:(size_t)x y:(size_t)y{
+    long index = x+ self.max.x*y;
+    
+    // Validate index
+    if (index >= _dataSize){
+        return;
+    }
 	data[x+ self.max.x*y] = value;
 }
 
 - (void)fillWithValue:(char)value {
 	size_t last = self.max.x * self.max.y;
+    
+    // Validate index
+    if (last != _dataSize){
+        return;
+    }
 	char *temp = data;
 	for(size_t i = 0; i < last; ++i){
 		*temp = value;
@@ -68,7 +86,6 @@
 	if(data){
 		free(data);
 	}
-	[super dealloc];
 }
 
 @end
