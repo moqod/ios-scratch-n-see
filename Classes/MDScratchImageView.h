@@ -25,67 +25,18 @@
 // DEALINGS IN THE SOFTWARE.
 //
 
-#import "Matrix.h"
+#import <UIKit/UIKit.h>
 
-@implementation Matrix
-@synthesize max;
+@class MDScratchImageView;
+@protocol ImageMaskFilledDelegate
+- (void)MDScratchImageView:(MDScratchImageView *)maskView cleatPercentWasChanged:(float)clearPercent;
+@end
 
-- (id)initWithMaxX:(size_t)x MaxY:(size_t)y {
-	if (self = [super init]) {
-		data = (char *) malloc(x * y);
-        _dataSize = x * y;
-		max = MySizeMake(x, y);
-		[self fillWithValue:0];
-	}
-	return self;
-}
+@interface MDScratchImageView : UIImageView
 
-- (id)initWithMax:(MySize) maxCoords {
-	return [self initWithMaxX:maxCoords.x MaxY:maxCoords.y];
-}
+@property (nonatomic, readonly) double procentsOfImageMasked;
+@property (nonatomic, assign) id<ImageMaskFilledDelegate> imageMaskFilledDelegate;
 
-#pragma mark -
-
-- (char)valueForCoordinates:(size_t)x y:(size_t)y {
-    long index = x + self.max.x * y;
-    
-    // Validate index
-    if (index >= _dataSize){
-        return 0;
-    }
-	return data[x + self.max.x * y];
-}
-
-- (void)setValue:(char)value forCoordinates:(size_t)x y:(size_t)y{
-    long index = x+ self.max.x*y;
-    
-    // Validate index
-    if (index >= _dataSize){
-        return;
-    }
-	data[x+ self.max.x*y] = value;
-}
-
-- (void)fillWithValue:(char)value {
-	size_t last = self.max.x * self.max.y;
-    
-    // Validate index
-    if (last != _dataSize){
-        return;
-    }
-	char *temp = data;
-	for(size_t i = 0; i < last; ++i){
-		*temp = value;
-		++temp;
-	}
-}
-
-#pragma mark -
-
-- (void)dealloc {
-	if(data){
-		free(data);
-	}
-}
+- (id)initWithFrame:(CGRect)frame image:(UIImage *)img;
 
 @end

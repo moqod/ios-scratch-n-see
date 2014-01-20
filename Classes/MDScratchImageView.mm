@@ -25,33 +25,32 @@
 // DEALINGS IN THE SOFTWARE.
 //
 
-#import "ImageMaskView.h"
+#import "MDScratchImageView.h"
 #import "PointTransforms.h"
-#import "Matrix.h"
+#import "MDMatrix.h"
 
-enum{ radius = 30 };
+enum { radius = 30 };
 
 typedef void  (*FillTileWithPointFunc)( id, SEL, CGPoint );
 typedef void  (*FillTileWithTwoPointsFunc)(id, SEL, CGPoint, CGPoint);
 
-@interface ImageMaskView()
+@interface MDScratchImageView () {
+	size_t _tilesX;
+	size_t _tilesY;
+}
 
 - (UIImage *)addTouches:(NSSet *)touches;
 - (void)fillTileWithPoint:(CGPoint) point;
 - (void)fillTileWithTwoPoints:(CGPoint)begin end:(CGPoint)end;
 
-@property (nonatomic) int tilesFilled;
-@property (nonatomic,retain) Matrix *maskedMatrix;
-@property (nonatomic) CGContextRef imageContext;
-@property (nonatomic) CGColorSpaceRef colorSpace;
+@property (nonatomic, assign) int				tilesFilled;
+@property (nonatomic, assign) CGContextRef		imageContext;
+@property (nonatomic, assign) CGColorSpaceRef	colorSpace;
+@property (nonatomic, retain) MDMatrix			*maskedMatrix;
 
 @end
 
-@implementation ImageMaskView
-@synthesize imageMaskFilledDelegate;
-@synthesize tilesFilled;
-@synthesize maskedMatrix;
-@synthesize imageContext,colorSpace;
+@implementation MDScratchImageView
 
 #pragma mark - memory management
 
@@ -59,12 +58,14 @@ typedef void  (*FillTileWithTwoPointsFunc)(id, SEL, CGPoint, CGPoint);
 	self.maskedMatrix = nil;
 	CGColorSpaceRelease(self.colorSpace);
 	CGContextRelease(self.imageContext);
+#if !(__has_feature(objc_arc))
+	[super dealloc];
+#endif
 }
 
 #pragma mark -
 
-- (void) initialize{
-    // Initialization code
+- (void)initialize {
     self.userInteractionEnabled = YES;
     self.backgroundColor = [UIColor clearColor];
     self.imageMaskFilledDelegate = nil;
@@ -73,32 +74,27 @@ typedef void  (*FillTileWithTwoPointsFunc)(id, SEL, CGPoint, CGPoint);
     
     // initalize bitmap context
     self.colorSpace = CGColorSpaceCreateDeviceRGB();
-    self.imageContext = CGBitmapContextCreate(0,
-                                              size.width,
-                                              size.height,
-                                              8,
-                                              size.width * 4,
-                                              colorSpace,
-                                              kCGImageAlphaPremultipliedLast);
-    CGContextDrawImage(self.imageContext, CGRectMake(0, 0, size.width, size.height), self.image.CGImage);
-    
+    self.imageContext = CGBitmapContextCreate(0, size.width * self.image.scale, size.height * self.image.scale, 8, size.width * 4 * self.image.scale, self.colorSpace, kCGImageAlphaPremultipliedLast);
+    CGContextDrawImage(self.imageContext, CGRectMake(0, 0, size.width * self.image.scale, size.height * self.image.scale), self.image.CGImage);
+	
     int blendMode = kCGBlendModeClear;
     CGContextSetBlendMode(self.imageContext, (CGBlendMode) blendMode);
     
-    tilesX = size.width  / (2 * radius);
-    tilesY = size.height / (2 * radius);
+    _tilesX = size.width  / (2 * radius);
+    _tilesY = size.height / (2 * radius);
     
-    self.maskedMatrix = [[Matrix alloc] initWithMax:MySizeMake(tilesX, tilesY)];
+    self.maskedMatrix = [[MDMatrix alloc] initWithMax:MDSizeMake(_tilesX, _tilesY)];
     self.tilesFilled = 0;
 }
 
-- (void) awakeFromNib{
+- (void)awakeFromNib {
     [super awakeFromNib];
     [self initialize];
 }
 
 - (id)initWithFrame:(CGRect)frame image:(UIImage *)img {
     if (self = [super initWithFrame:frame]) {
+		self.image = img;
         [self initialize];
     }
     return self;
@@ -149,7 +145,7 @@ typedef void  (*FillTileWithTwoPointsFunc)(id, SEL, CGPoint, CGPoint);
 
 			static const FillTileWithPointFunc fillTileFunc = (FillTileWithPointFunc) [self methodForSelector:@selector(fillTileWithPoint:)];
 			(*fillTileFunc)(self,@selector(fillTileWithPoint:),rect.origin);
-		} else if(UITouchPhaseMoved == touch.phase) {
+		} else if (UITouchPhaseMoved == touch.phase) {
 			// then touch moved, we draw superior-width line
 			rect.origin = scalePoint(rect.origin, self.bounds.size, size);
 			CGPoint prevPoint = [touch previousLocationInView:self];
@@ -170,7 +166,7 @@ typedef void  (*FillTileWithTwoPointsFunc)(id, SEL, CGPoint, CGPoint);
 	
 	// was tilesFilled changed?
 	if(tempFilled != self.tilesFilled){
-		[self.imageMaskFilledDelegate imageMaskView:self cleatPercentWasChanged:[self procentsOfImageMasked]];
+		[self.imageMaskFilledDelegate MDScratchImageView:self cleatPercentWasChanged:[self procentsOfImageMasked]];
 	}
 	
 	CGImageRef cgImage = CGBitmapContextCreateImage(ctx);
@@ -183,7 +179,6 @@ typedef void  (*FillTileWithTwoPointsFunc)(id, SEL, CGPoint, CGPoint);
 /* 
  * filling tile with one ellipse
  */
-
 -(void)fillTileWithPoint:(CGPoint) point{
 	size_t x,y;
     
@@ -203,14 +198,13 @@ typedef void  (*FillTileWithTwoPointsFunc)(id, SEL, CGPoint, CGPoint);
 /*
  * filling tile with line
  */
-
 -(void)fillTileWithTwoPoints:(CGPoint)begin end:(CGPoint)end{
 	CGFloat incrementerForx,incrementerFory;
 	static const FillTileWithPointFunc fillTileFunc = (FillTileWithPointFunc) [self methodForSelector:@selector(fillTileWithPoint:)];
 	
 	/* incrementers - about size of a tile */
-	incrementerForx = (begin.x < end.x ? 1 : -1) * self.image.size.width / tilesX;
-	incrementerFory = (begin.y < end.y ? 1 : -1) * self.image.size.height / tilesY;
+	incrementerForx = (begin.x < end.x ? 1 : -1) * self.image.size.width / _tilesX;
+	incrementerFory = (begin.y < end.y ? 1 : -1) * self.image.size.height / _tilesY;
 	
 	// iterate on points between begin and end
 	CGPoint i = begin;

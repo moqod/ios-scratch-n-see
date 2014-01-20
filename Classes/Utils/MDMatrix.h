@@ -25,21 +25,31 @@
 // DEALINGS IN THE SOFTWARE.
 //
 
-#import <UIKit/UIKit.h>
+#ifndef _MATRIX_H_
+#define _MATRIX_H_
+#import <Foundation/Foundation.h>
 
-@class ImageMaskView;
-@protocol ImageMaskFilledDelegate
-- (void)imageMaskView:(ImageMaskView *)maskView cleatPercentWasChanged:(float)clearPercent;
-@end
+typedef struct{
+	size_t x;
+	size_t y;
+} MDSize;
 
-@interface ImageMaskView : UIImageView {
-	size_t tilesX;
-	size_t tilesY;
+MDSize MDSizeMake(size_t x,size_t y){
+	MDSize r = {x,y};
+	return r;
+}
+@interface MDMatrix : NSObject {
+	char * data;
+    long _dataSize;
 }
 
-@property (nonatomic, readonly) double procentsOfImageMasked;
-@property (nonatomic, assign) id<ImageMaskFilledDelegate> imageMaskFilledDelegate;
+-(id)initWithMaxX:(size_t)x MaxY:(size_t)y;
+-(id)initWithMax:(MDSize) maxCoords;
+-(char)valueForCoordinates:(size_t)x y:(size_t)y;
+-(void)setValue:(char)value forCoordinates:(size_t)x y:(size_t)y;
+-(void)fillWithValue:(char)value;
 
-- (id)initWithFrame:(CGRect)frame image:(UIImage *)img;
-
+@property (readonly) MDSize max;
 @end
+
+#endif //_MATRIX_H_

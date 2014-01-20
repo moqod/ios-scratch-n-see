@@ -26,7 +26,7 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "ImageMaskView.h"
+#import "MDScratchImageView.h"
 
 @interface blured_touchAppDelegate : NSObject <ImageMaskFilledDelegate, UIApplicationDelegate> {
     UIWindow *window;

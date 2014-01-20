@@ -35,21 +35,25 @@
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {    
 	self.window.backgroundColor = [UIColor blackColor];
 	
+	
 	UIImage * sharpImage = [UIImage imageNamed:@"sharp_2.png"];
+	/*
 	UIImageView *imageView = [[[UIImageView alloc] initWithFrame:CGRectMake((int)(self.window.bounds.size.width * .5 - sharpImage.size.width * .5),
 																			(int)(self.window.bounds.size.height * .5 - sharpImage.size.height * .5),
 																			sharpImage.size.width, sharpImage.size.height)] autorelease];
 	imageView.image = sharpImage;
 	[self.window addSubview:imageView];
+	*/
 	
 	UIImage * blurImage = [UIImage imageNamed:@"blur_3.png"];
 	CGRect maskViewRect = CGRectMake((int)(self.window.bounds.size.width * .5 - sharpImage.size.width * .5),
 									 (int)(self.window.bounds.size.height * .5 - sharpImage.size.height * .5),
 									 blurImage.size.width, blurImage.size.height);
-    ImageMaskView *view = [[[ImageMaskView alloc] initWithFrame:maskViewRect image:blurImage] autorelease];
+	
+    MDScratchImageView *view = [[[MDScratchImageView alloc] initWithFrame:maskViewRect image:blurImage] autorelease];
 	view.imageMaskFilledDelegate = self;
-
 	[self.window addSubview:view];
+	 
     [self.window makeKeyAndVisible];
    
     return YES;
@@ -57,7 +61,7 @@
 
 #pragma mark - ImageMaskFilledDelegate
 
-- (void)imageMaskView:(ImageMaskView *)maskView cleatPercentWasChanged:(float)clearPercent {
+- (void)MDScratchImageView:(MDScratchImageView *)maskView cleatPercentWasChanged:(float)clearPercent {
 	NSLog(@"percent: %.2f", clearPercent);
 }
 

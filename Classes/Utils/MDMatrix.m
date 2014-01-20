@@ -25,31 +25,70 @@
 // DEALINGS IN THE SOFTWARE.
 //
 
-#ifndef _MATRIX_H_
-#define _MATRIX_H_
-#import <Foundation/Foundation.h>
+#import "MDMatrix.h"
 
-typedef struct{
-	size_t x;
-	size_t y;
-}MySize;
+@implementation MDMatrix
+@synthesize max;
 
-MySize MySizeMake(size_t x,size_t y){
-	MySize r = {x,y};
-	return r;
-}
-@interface Matrix : NSObject {
-	char * data;
-    long _dataSize;
+- (id)initWithMaxX:(size_t)x MaxY:(size_t)y {
+	if (self = [super init]) {
+		data = (char *) malloc(x * y);
+        _dataSize = x * y;
+		max = MDSizeMake(x, y);
+		[self fillWithValue:0];
+	}
+	return self;
 }
 
--(id)initWithMaxX:(size_t)x MaxY:(size_t)y;
--(id)initWithMax:(MySize) maxCoords;
--(char)valueForCoordinates:(size_t)x y:(size_t)y;
--(void)setValue:(char)value forCoordinates:(size_t)x y:(size_t)y;
--(void)fillWithValue:(char)value;
+- (id)initWithMax:(MDSize) maxCoords {
+	return [self initWithMaxX:maxCoords.x MaxY:maxCoords.y];
+}
 
-@property (readonly) MySize max;
+#pragma mark -
+
+- (char)valueForCoordinates:(size_t)x y:(size_t)y {
+    long index = x + self.max.x * y;
+    
+    // Validate index
+    if (index >= _dataSize){
+        return 0;
+    }
+	return data[x + self.max.x * y];
+}
+
+- (void)setValue:(char)value forCoordinates:(size_t)x y:(size_t)y{
+    long index = x+ self.max.x*y;
+    
+    // Validate index
+    if (index >= _dataSize){
+        return;
+    }
+	data[x+ self.max.x*y] = value;
+}
+
+- (void)fillWithValue:(char)value {
+	size_t last = self.max.x * self.max.y;
+    
+    // Validate index
+    if (last != _dataSize){
+        return;
+    }
+	char *temp = data;
+	for(size_t i = 0; i < last; ++i){
+		*temp = value;
+		++temp;
+	}
+}
+
+#pragma mark -
+
+- (void)dealloc {
+	if(data){
+		free(data);
+	}
+#if !(__has_feature(objc_arc))
+	[super dealloc];
+#endif
+}
+
 @end
-
-#endif //_MATRIX_H_
