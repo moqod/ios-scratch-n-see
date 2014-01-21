@@ -26,27 +26,37 @@
 //
 
 #import "MDScratchImageView.h"
-#import "PointTransforms.h"
 #import "MDMatrix.h"
 
-enum { radius = 30 };
+const size_t MDScratchImageViewDefaultRadius			= 30;
 
-typedef void  (*FillTileWithPointFunc)( id, SEL, CGPoint );
-typedef void  (*FillTileWithTwoPointsFunc)(id, SEL, CGPoint, CGPoint);
+typedef void (*FillTileWithPointFunc)( id, SEL, CGPoint );
+typedef void (*FillTileWithTwoPointsFunc)(id, SEL, CGPoint, CGPoint);
 
-@interface MDScratchImageView () {
-	size_t _tilesX;
-	size_t _tilesY;
+inline CGPoint fromUItoQuartz(CGPoint point, CGSize frameSize){
+	point.y = frameSize.height - point.y;
+	return point;
 }
 
-- (UIImage *)addTouches:(NSSet *)touches;
-- (void)fillTileWithPoint:(CGPoint) point;
-- (void)fillTileWithTwoPoints:(CGPoint)begin end:(CGPoint)end;
+inline CGPoint scalePoint(CGPoint point, CGSize previousSize, CGSize currentSize){
+	return CGPointMake(currentSize.width * point.x / previousSize.width, currentSize.height * point.y / previousSize.height);
+}
 
-@property (nonatomic, assign) int				tilesFilled;
-@property (nonatomic, assign) CGContextRef		imageContext;
-@property (nonatomic, assign) CGColorSpaceRef	colorSpace;
-@property (nonatomic, retain) MDMatrix			*maskedMatrix;
+@interface MDScratchImageView () {
+	size_t				_tilesX;
+	size_t				_tilesY;
+	int					_tilesFilled;
+	CGColorSpaceRef		_colorSpace;
+	CGContextRef		_imageContext;
+	
+	size_t				_radius;
+}
+
+@property (nonatomic, strong) MDMatrix			*maskedMatrix;
+
+- (UIImage *)addTouches:(NSSet *)touches;
+- (void)fillTileWithPoint:(CGPoint)point;
+- (void)fillTileWithTwoPoints:(CGPoint)begin end:(CGPoint)end;
 
 @end
 
@@ -56,93 +66,110 @@ typedef void  (*FillTileWithTwoPointsFunc)(id, SEL, CGPoint, CGPoint);
 
 - (void)dealloc {
 	self.maskedMatrix = nil;
-	CGColorSpaceRelease(self.colorSpace);
-	CGContextRelease(self.imageContext);
+	CGColorSpaceRelease(_colorSpace);
+	CGContextRelease(_imageContext);
 #if !(__has_feature(objc_arc))
 	[super dealloc];
 #endif
 }
 
-#pragma mark -
+#pragma mark - inner initalization
 
 - (void)initialize {
-    self.userInteractionEnabled = YES;
-    self.backgroundColor = [UIColor clearColor];
-    self.imageMaskFilledDelegate = nil;
-    
-    CGSize size = self.image.size;
-    
-    // initalize bitmap context
-    self.colorSpace = CGColorSpaceCreateDeviceRGB();
-    self.imageContext = CGBitmapContextCreate(0, size.width * self.image.scale, size.height * self.image.scale, 8, size.width * 4 * self.image.scale, self.colorSpace, kCGImageAlphaPremultipliedLast);
-    CGContextDrawImage(self.imageContext, CGRectMake(0, 0, size.width * self.image.scale, size.height * self.image.scale), self.image.CGImage);
+	self.userInteractionEnabled = YES;
+	_tilesFilled = 0;
 	
-    int blendMode = kCGBlendModeClear;
-    CGContextSetBlendMode(self.imageContext, (CGBlendMode) blendMode);
-    
-    _tilesX = size.width  / (2 * radius);
-    _tilesY = size.height / (2 * radius);
-    
-    self.maskedMatrix = [[MDMatrix alloc] initWithMax:MDSizeMake(_tilesX, _tilesY)];
-    self.tilesFilled = 0;
-}
-
-- (void)awakeFromNib {
-    [super awakeFromNib];
-    [self initialize];
-}
-
-- (id)initWithFrame:(CGRect)frame image:(UIImage *)img {
-    if (self = [super initWithFrame:frame]) {
-		self.image = img;
-        [self initialize];
-    }
-    return self;
+	if (nil == self.image) {
+		_tilesX = _tilesY = 0;
+		self.maskedMatrix = nil;
+		if (NULL != _imageContext) {
+			CGContextRelease(_imageContext);
+		}
+		if (NULL != _colorSpace) {
+			CGColorSpaceRelease(_colorSpace);
+		}
+	} else {
+		// CGSize size = self.image.size;
+		CGSize size = CGSizeMake(self.image.size.width * self.image.scale, self.image.size.height * self.image.scale);
+		
+		// initalize bitmap context
+		if (NULL == _colorSpace) {
+			_colorSpace = CGColorSpaceCreateDeviceRGB();
+		}
+		if (NULL != _imageContext) {
+			CGContextRelease(_imageContext);
+		}
+		_imageContext = CGBitmapContextCreate(0, size.width, size.height, 8, size.width * 4, _colorSpace, kCGImageAlphaPremultipliedLast);
+		CGContextDrawImage(_imageContext, CGRectMake(0, 0, size.width, size.height), self.image.CGImage);
+		
+		int blendMode = kCGBlendModeClear;
+		CGContextSetBlendMode(_imageContext, (CGBlendMode) blendMode);
+		
+		_tilesX = size.width  / (2 * _radius);
+		_tilesY = size.height / (2 * _radius);
+		
+#if !(__has_feature(objc_arc))
+		self.maskedMatrix = [[[MDMatrix alloc] initWithMax:MDSizeMake(_tilesX, _tilesY)] autorelease];
+#else
+		self.maskedMatrix = [[MDMatrix alloc] initWithMax:MDSizeMake(_tilesX, _tilesY)];
+#endif
+	}
 }
 
 #pragma mark -
 
-- (double)procentsOfImageMasked {
-	return 100.0 * self.tilesFilled / (self.maskedMatrix.max.x * self.maskedMatrix.max.y);
+- (void)setImage:(UIImage *)image radius:(size_t)radius {
+	[super setImage:image];
+	_radius = radius;
+	[self initialize];
+}
+
+- (void)setImage:(UIImage *)image {
+	if (image != self.image) {
+		[self setImage:image radius:MDScratchImageViewDefaultRadius];
+	}
+}
+
+#pragma mark -
+
+- (CGFloat)maskingProgress {
+	return ( ((CGFloat)_tilesFilled) / ((CGFloat)(self.maskedMatrix.max.x * self.maskedMatrix.max.y)) );
 }
 
 #pragma mark - UIResponder
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event{
-    [super touchesBegan:touches withEvent:event];
-	self.image = [self addTouches:touches];
+	[super setImage:[self addTouches:touches]];
 }
 
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event{
-    [super touchesMoved:touches withEvent:event];
-	self.image = [self addTouches:touches];
+	[super setImage:[self addTouches:touches]];
 }
 
 #pragma mark -
 
-- (UIImage *)addTouches:(NSSet *)touches{
+- (UIImage *)addTouches:(NSSet *)touches {
 	CGSize size = self.image.size;
-	CGContextRef ctx = self.imageContext;
+	CGContextRef ctx = _imageContext;
 	
 	CGContextSetFillColorWithColor(ctx,[UIColor clearColor].CGColor);
 	CGContextSetStrokeColorWithColor(ctx,[UIColor colorWithRed:0 green:0 blue:0 alpha:0].CGColor);
-	int tempFilled = self.tilesFilled;
+	int tempFilled = _tilesFilled;
 	
 	// process touches
 	for (UITouch *touch in touches) {
 		CGContextBeginPath(ctx);
-		CGRect rect = {[touch locationInView:self], {2*radius, 2*radius}};
+		CGPoint touchPoint = [touch locationInView:self];
+		CGRect rect = CGRectMake(touchPoint.x, touchPoint.y, 2 * _radius, 2 * _radius);
 		rect.origin = fromUItoQuartz(rect.origin, self.bounds.size);
 		
 		if(UITouchPhaseBegan == touch.phase){
 			// on begin, we just draw ellipse
-			rect.origin.y -= radius;
-			rect.origin.x -= radius;
 			rect.origin = scalePoint(rect.origin, self.bounds.size, size);
-			
+			rect.origin.x -= _radius;
+			rect.origin.y -= _radius;
 			CGContextAddEllipseInRect(ctx, rect);
 			CGContextFillPath(ctx);
-
 			static const FillTileWithPointFunc fillTileFunc = (FillTileWithPointFunc) [self methodForSelector:@selector(fillTileWithPoint:)];
 			(*fillTileFunc)(self,@selector(fillTileWithPoint:),rect.origin);
 		} else if (UITouchPhaseMoved == touch.phase) {
@@ -152,9 +179,9 @@ typedef void  (*FillTileWithTwoPointsFunc)(id, SEL, CGPoint, CGPoint);
 			prevPoint = fromUItoQuartz(prevPoint, self.bounds.size);
 			prevPoint = scalePoint(prevPoint, self.bounds.size, size);
 			
-			CGContextSetStrokeColor(ctx,CGColorGetComponents([UIColor yellowColor].CGColor));
+			CGContextSetStrokeColor(ctx, CGColorGetComponents([UIColor yellowColor].CGColor));
 			CGContextSetLineCap(ctx, kCGLineCapRound);
-			CGContextSetLineWidth(ctx, 2*radius);
+			CGContextSetLineWidth(ctx, 2 * _radius);
 			CGContextMoveToPoint(ctx, prevPoint.x, prevPoint.y);
 			CGContextAddLineToPoint(ctx, rect.origin.x, rect.origin.y);
 			CGContextStrokePath(ctx);
@@ -163,16 +190,15 @@ typedef void  (*FillTileWithTwoPointsFunc)(id, SEL, CGPoint, CGPoint);
 			(*fillTileFunc)(self,@selector(fillTileWithTwoPoints:end:),rect.origin, prevPoint);
 		}
 	}
-	
-	// was tilesFilled changed?
-	if(tempFilled != self.tilesFilled){
-		[self.imageMaskFilledDelegate MDScratchImageView:self cleatPercentWasChanged:[self procentsOfImageMasked]];
+
+	// was _tilesFilled changed?
+	if(tempFilled != _tilesFilled) {
+		[_delegate mdScratchImageView:self didChangeMaskingProgress:self.maskingProgress];
 	}
 	
 	CGImageRef cgImage = CGBitmapContextCreateImage(ctx);
 	UIImage *image = [UIImage imageWithCGImage:cgImage];
 	CGImageRelease(cgImage);
-	
 	return image;
 }
 
@@ -181,17 +207,14 @@ typedef void  (*FillTileWithTwoPointsFunc)(id, SEL, CGPoint, CGPoint);
  */
 -(void)fillTileWithPoint:(CGPoint) point{
 	size_t x,y;
-    
-    // Cap point to within our bounds just in case
     point.x = MIN(point.x, self.image.size.width);
     point.y = MIN(point.y, self.image.size.height);
-    
-	x = point.x * abs(self.maskedMatrix.max.x / self.image.size.width);
-	y = point.y * abs(self.maskedMatrix.max.y / self.image.size.height);
+	x = point.x * self.maskedMatrix.max.x / self.image.size.width;
+	y = point.y * self.maskedMatrix.max.y / self.image.size.height;
 	char value = [self.maskedMatrix valueForCoordinates:x y:y];
-	if(!value){
+	if (!value){
 		[self.maskedMatrix setValue:1 forCoordinates:x y:y];
-		self.tilesFilled++;
+		_tilesFilled++;
 	}
 }
 
@@ -215,4 +238,5 @@ typedef void  (*FillTileWithTwoPointsFunc)(id, SEL, CGPoint, CGPoint);
 	}
 	(*fillTileFunc)(self,@selector(fillTileWithPoint:),end);
 }
+
 @end

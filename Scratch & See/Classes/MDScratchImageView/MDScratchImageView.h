@@ -28,15 +28,16 @@
 #import <UIKit/UIKit.h>
 
 @class MDScratchImageView;
-@protocol ImageMaskFilledDelegate
-- (void)MDScratchImageView:(MDScratchImageView *)maskView cleatPercentWasChanged:(float)clearPercent;
+@protocol MDScratchImageViewDelegate
+@required
+- (void)mdScratchImageView:(MDScratchImageView *)scratchImageView didChangeMaskingProgress:(CGFloat)maskingProgress;
 @end
 
 @interface MDScratchImageView : UIImageView
 
-@property (nonatomic, readonly) double procentsOfImageMasked;
-@property (nonatomic, assign) id<ImageMaskFilledDelegate> imageMaskFilledDelegate;
+@property (nonatomic, readonly) CGFloat							maskingProgress;
+@property (nonatomic, assign) id<MDScratchImageViewDelegate>	delegate;
 
-- (id)initWithFrame:(CGRect)frame image:(UIImage *)img;
+- (void)setImage:(UIImage *)image radius:(size_t)radius;
 
 @end

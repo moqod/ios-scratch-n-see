@@ -25,16 +25,32 @@
 // DEALINGS IN THE SOFTWARE.
 //
 
-#ifndef _POINT_TRANSFROMS_
-#define _POINT_TRANSFROMS_
+#ifndef _MATRIX_H_
+#define _MATRIX_H_
+#import <Foundation/Foundation.h>
 
-inline CGPoint fromUItoQuartz(CGPoint point,CGSize frameSize){
-	point.y = frameSize.height - point.y;
-	return point;
+typedef struct {
+	size_t x;
+	size_t y;
+} MDSize;
+
+MDSize MDSizeMake(size_t x,size_t y){
+	MDSize r = {x,y};
+	return r;
 }
 
-inline CGPoint scalePoint(CGPoint point,CGSize previousSize,CGSize currentSize){
-	return CGPointMake(currentSize.width *point.x / previousSize.width, 
-					   currentSize.height *point.y / previousSize.height);
-}
-#endif //_POINT_TRANSFROMS_
+@interface MDMatrix : NSObject
+
+-(id)initWithMaxX:(size_t)x MaxY:(size_t)y;
+-(id)initWithMax:(MDSize) maxCoords;
+
+-(char)valueForCoordinates:(size_t)x y:(size_t)y;
+-(void)setValue:(char)value forCoordinates:(size_t)x y:(size_t)y;
+
+-(void)fillWithValue:(char)value;
+
+@property (readonly, assign) MDSize			max;
+
+@end
+
+#endif //_MATRIX_H_
