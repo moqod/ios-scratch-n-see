@@ -11,8 +11,8 @@ Feel free to get in touch with us in regards to any questions or cooperation req
 # Sample
 The project contains an example, but in general it's really simple.
 ``` objc
-    MDScratchImageView *scratchImageView = [[MDScratchImageView alloc] initWithFrame:imageView.frame];
-    scratchImageView.image = image;
+MDScratchImageView *scratchImageView = [[MDScratchImageView alloc] initWithFrame:imageView.frame];
+scratchImageView.image = image;
 ```
 That's it!
 
