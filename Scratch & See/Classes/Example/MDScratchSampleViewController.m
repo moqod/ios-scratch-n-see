@@ -21,6 +21,7 @@
 	UIScrollView *scrollView = [[UIScrollView alloc] initWithFrame:self.view.bounds];
 	scrollView.contentInset = UIEdgeInsetsMake([[UIApplication sharedApplication] statusBarFrame].size.height, 0.0f, 0.0f, 0.0f);
 	scrollView.canCancelContentTouches = NO;
+	scrollView.delaysContentTouches = NO;
 	[self.view addSubview:scrollView];
 	
 	NSArray *imagesDicts = @[ @{@"sharp" : @"paint01-01.png", @"blured" : @"paint01-01blur.png"},
@@ -32,7 +33,7 @@
 	for (NSDictionary *dictionary in imagesDicts) {
 		UIImage *sharpImage = [UIImage imageNamed:[dictionary objectForKey:@"sharp"]];
 		
-		CGFloat width = MIN(floorf(scrollView.bounds.size.width * 0.9f), sharpImage.size.width);
+		CGFloat width = MIN(floorf(scrollView.bounds.size.width * 0.6f), sharpImage.size.width);
 		CGFloat height = sharpImage.size.height * (width / sharpImage.size.width);
 		
 		UIImageView *imageView = [[UIImageView alloc] initWithFrame:CGRectMake(floorf(scrollView.bounds.size.width * 0.5f - width * 0.5f), currentY, width, height)];
