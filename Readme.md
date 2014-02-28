@@ -9,9 +9,10 @@ Feel free to get in touch with us in regards to any questions or cooperation req
 # Update
 - Fixed masking progress calculation
 
+# Sample
+
 ![Image](http://files.stage.mqd.me/scr_see_sample.png)
 
-# Sample
 The project contains an example, but in general it's really simple.
 ``` objc
 MDScratchImageView *scratchImageView = [[MDScratchImageView alloc] initWithFrame:imageView.frame];
