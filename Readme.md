@@ -6,6 +6,9 @@ When integrating this solution to your project, please, spare us a like on [Face
 
 Feel free to get in touch with us in regards to any questions or cooperation requests via email [info@moqod.com](mailto:info@moqod.com).<br />
 
+# Update
+- Fixed masking progress calculation
+
 ![Image](http://files.stage.mqd.me/scr_see_sample.png)
 
 # Sample
