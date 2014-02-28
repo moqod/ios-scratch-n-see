@@ -207,8 +207,8 @@ inline CGPoint scalePoint(CGPoint point, CGSize previousSize, CGSize currentSize
  */
 -(void)fillTileWithPoint:(CGPoint) point{
 	size_t x,y;
-    point.x = MIN(point.x, self.image.size.width);
-    point.y = MIN(point.y, self.image.size.height);
+    point.x = MAX( MIN(point.x, self.image.size.width - 1) , 0);
+    point.y = MAX( MIN(point.y, self.image.size.height - 1), 0);
 	x = point.x * self.maskedMatrix.max.x / self.image.size.width;
 	y = point.y * self.maskedMatrix.max.y / self.image.size.height;
 	char value = [self.maskedMatrix valueForCoordinates:x y:y];

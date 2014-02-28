@@ -52,7 +52,7 @@
 - (char)valueForCoordinates:(size_t)x y:(size_t)y {
     long index = x + self.max.x * y;
     if (index >= self.max.x * self.max.y){
-        return 0;
+        return 1; //NSAssert(0, @"I should not to be here! :( ");
     } else {
 		return _data[x + self.max.x * y];
 	}
