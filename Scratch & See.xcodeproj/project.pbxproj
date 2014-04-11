@@ -11,8 +11,8 @@
 		52147432188E94AA0025A7D3 /* paint01-01blur.png in Resources */ = {isa = PBXBuildFile; fileRef = 5214742C188E94AA0025A7D3 /* paint01-01blur.png */; };
 		52147433188E94AA0025A7D3 /* paint01-02.png in Resources */ = {isa = PBXBuildFile; fileRef = 5214742D188E94AA0025A7D3 /* paint01-02.png */; };
 		52147434188E94AA0025A7D3 /* paint01-02blur.png in Resources */ = {isa = PBXBuildFile; fileRef = 5214742E188E94AA0025A7D3 /* paint01-02blur.png */; };
-		52147435188E94AA0025A7D3 /* paint01-03.png in Resources */ = {isa = PBXBuildFile; fileRef = 5214742F188E94AA0025A7D3 /* paint01-03.png */; };
-		52147436188E94AA0025A7D3 /* paint01-03blur.png in Resources */ = {isa = PBXBuildFile; fileRef = 52147430188E94AA0025A7D3 /* paint01-03blur.png */; };
+		52147435188E94AA0025A7D3 /* paint01-03@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 5214742F188E94AA0025A7D3 /* paint01-03@2x.png */; };
+		52147436188E94AA0025A7D3 /* paint01-03blur@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 52147430188E94AA0025A7D3 /* paint01-03blur@2x.png */; };
 		52DC9C2A188E6A5900272042 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 52DC9C29188E6A5800272042 /* Foundation.framework */; };
 		52DC9C2C188E6A5900272042 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 52DC9C2B188E6A5900272042 /* CoreGraphics.framework */; };
 		52DC9C2E188E6A5900272042 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 52DC9C2D188E6A5900272042 /* UIKit.framework */; };
@@ -45,8 +45,8 @@
 		5214742C188E94AA0025A7D3 /* paint01-01blur.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "paint01-01blur.png"; sourceTree = "<group>"; };
 		5214742D188E94AA0025A7D3 /* paint01-02.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "paint01-02.png"; sourceTree = "<group>"; };
 		5214742E188E94AA0025A7D3 /* paint01-02blur.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "paint01-02blur.png"; sourceTree = "<group>"; };
-		5214742F188E94AA0025A7D3 /* paint01-03.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "paint01-03.png"; sourceTree = "<group>"; };
-		52147430188E94AA0025A7D3 /* paint01-03blur.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "paint01-03blur.png"; sourceTree = "<group>"; };
+		5214742F188E94AA0025A7D3 /* paint01-03@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "paint01-03@2x.png"; sourceTree = "<group>"; };
+		52147430188E94AA0025A7D3 /* paint01-03blur@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "paint01-03blur@2x.png"; sourceTree = "<group>"; };
 		52DC9C26188E6A5800272042 /* Scratch & See.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Scratch & See.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		52DC9C29188E6A5800272042 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		52DC9C2B188E6A5900272042 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
@@ -203,8 +203,8 @@
 				5214742C188E94AA0025A7D3 /* paint01-01blur.png */,
 				5214742D188E94AA0025A7D3 /* paint01-02.png */,
 				5214742E188E94AA0025A7D3 /* paint01-02blur.png */,
-				5214742F188E94AA0025A7D3 /* paint01-03.png */,
-				52147430188E94AA0025A7D3 /* paint01-03blur.png */,
+				5214742F188E94AA0025A7D3 /* paint01-03@2x.png */,
+				52147430188E94AA0025A7D3 /* paint01-03blur@2x.png */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -288,11 +288,11 @@
 				52147431188E94AA0025A7D3 /* paint01-01.png in Resources */,
 				52147432188E94AA0025A7D3 /* paint01-01blur.png in Resources */,
 				52DC9C34188E6A5900272042 /* InfoPlist.strings in Resources */,
-				52147435188E94AA0025A7D3 /* paint01-03.png in Resources */,
+				52147435188E94AA0025A7D3 /* paint01-03@2x.png in Resources */,
 				52147433188E94AA0025A7D3 /* paint01-02.png in Resources */,
 				52147434188E94AA0025A7D3 /* paint01-02blur.png in Resources */,
 				52DC9C3C188E6A5900272042 /* Images.xcassets in Resources */,
-				52147436188E94AA0025A7D3 /* paint01-03blur.png in Resources */,
+				52147436188E94AA0025A7D3 /* paint01-03blur@2x.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

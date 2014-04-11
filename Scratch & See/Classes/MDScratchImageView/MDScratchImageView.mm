@@ -149,7 +149,7 @@ inline CGPoint scalePoint(CGPoint point, CGSize previousSize, CGSize currentSize
 #pragma mark -
 
 - (UIImage *)addTouches:(NSSet *)touches {
-	CGSize size = self.image.size;
+    CGSize size = CGSizeMake(self.image.size.width * self.image.scale, self.image.size.height * self.image.scale);
 	CGContextRef ctx = _imageContext;
 	
 	CGContextSetFillColorWithColor(ctx,[UIColor clearColor].CGColor);
