@@ -66,8 +66,14 @@ inline CGPoint scalePoint(CGPoint point, CGSize previousSize, CGSize currentSize
 
 - (void)dealloc {
 	self.maskedMatrix = nil;
-	CGColorSpaceRelease(_colorSpace);
-	CGContextRelease(_imageContext);
+    if (NULL != _imageContext) {
+        CGContextRelease(_imageContext);
+        _imageContext = NULL;
+    }
+    if (NULL != _colorSpace) {
+        CGColorSpaceRelease(_colorSpace);
+        _colorSpace = NULL;
+    }
 #if !(__has_feature(objc_arc))
 	[super dealloc];
 #endif
@@ -84,9 +90,11 @@ inline CGPoint scalePoint(CGPoint point, CGSize previousSize, CGSize currentSize
 		self.maskedMatrix = nil;
 		if (NULL != _imageContext) {
 			CGContextRelease(_imageContext);
+            _imageContext = NULL;
 		}
 		if (NULL != _colorSpace) {
 			CGColorSpaceRelease(_colorSpace);
+            _colorSpace = NULL;
 		}
 	} else {
 		// CGSize size = self.image.size;
@@ -139,10 +147,16 @@ inline CGPoint scalePoint(CGPoint point, CGSize previousSize, CGSize currentSize
 #pragma mark - UIResponder
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event{
+    if(!self.image){
+        return ;
+    }
 	[super setImage:[self addTouches:touches]];
 }
 
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event{
+    if(!self.image){
+        return ;
+    }
 	[super setImage:[self addTouches:touches]];
 }
 
