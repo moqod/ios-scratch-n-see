@@ -53,6 +53,7 @@ inline CGPoint scalePoint(CGPoint point, CGSize previousSize, CGSize currentSize
 }
 
 @property (nonatomic, strong) MDMatrix			*maskedMatrix;
+@property (nonatomic, strong) NSMutableArray    *touchPoints;
 
 - (UIImage *)addTouches:(NSSet *)touches;
 - (void)fillTileWithPoint:(CGPoint)point;
@@ -74,6 +75,7 @@ inline CGPoint scalePoint(CGPoint point, CGSize previousSize, CGSize currentSize
         CGColorSpaceRelease(_colorSpace);
         _colorSpace = NULL;
     }
+    self.touchPoints = nil;
 #if !(__has_feature(objc_arc))
 	[super dealloc];
 #endif
@@ -97,6 +99,7 @@ inline CGPoint scalePoint(CGPoint point, CGSize previousSize, CGSize currentSize
             _colorSpace = NULL;
 		}
 	} else {
+        self.touchPoints = [NSMutableArray array];
 		// CGSize size = self.image.size;
 		CGSize size = CGSizeMake(self.image.size.width * self.image.scale, self.image.size.height * self.image.scale);
 		
@@ -161,6 +164,13 @@ inline CGPoint scalePoint(CGPoint point, CGSize previousSize, CGSize currentSize
 }
 
 #pragma mark -
+-(CGPoint)normalizeVector:(CGPoint)p{
+    float len = sqrt(p.x*p.x + p.y*p.y);
+    if(0 == len){return CGPointMake(0, 0);}
+    p.x /= len;
+    p.y /= len;
+    return p;
+}
 
 - (UIImage *)addTouches:(NSSet *)touches {
     CGSize size = CGSizeMake(self.image.size.width * self.image.scale, self.image.size.height * self.image.scale);
@@ -169,39 +179,68 @@ inline CGPoint scalePoint(CGPoint point, CGSize previousSize, CGSize currentSize
 	CGContextSetFillColorWithColor(ctx,[UIColor clearColor].CGColor);
 	CGContextSetStrokeColorWithColor(ctx,[UIColor colorWithRed:0 green:0 blue:0 alpha:0].CGColor);
 	int tempFilled = _tilesFilled;
-	
+    
 	// process touches
 	for (UITouch *touch in touches) {
 		CGContextBeginPath(ctx);
 		CGPoint touchPoint = [touch locationInView:self];
-		CGRect rect = CGRectMake(touchPoint.x, touchPoint.y, 2 * _radius, 2 * _radius);
-		rect.origin = fromUItoQuartz(rect.origin, self.bounds.size);
+        touchPoint = fromUItoQuartz(touchPoint, self.bounds.size);
+        touchPoint = scalePoint(touchPoint, self.bounds.size, size);
 		
 		if(UITouchPhaseBegan == touch.phase){
+            [self.touchPoints removeAllObjects];
+            [self.touchPoints addObject:[NSValue valueWithCGPoint:touchPoint]];
+            [self.touchPoints addObject:[NSValue valueWithCGPoint:touchPoint]];
 			// on begin, we just draw ellipse
-			rect.origin = scalePoint(rect.origin, self.bounds.size, size);
-			rect.origin.x -= _radius;
-			rect.origin.y -= _radius;
+            CGRect rect = CGRectMake(touchPoint.x - _radius, touchPoint.y - _radius, _radius*2, _radius*2);
 			CGContextAddEllipseInRect(ctx, rect);
 			CGContextFillPath(ctx);
 			static const FillTileWithPointFunc fillTileFunc = (FillTileWithPointFunc) [self methodForSelector:@selector(fillTileWithPoint:)];
 			(*fillTileFunc)(self,@selector(fillTileWithPoint:),rect.origin);
 		} else if (UITouchPhaseMoved == touch.phase) {
-			// then touch moved, we draw superior-width line
-			rect.origin = scalePoint(rect.origin, self.bounds.size, size);
-			CGPoint prevPoint = [touch previousLocationInView:self];
-			prevPoint = fromUItoQuartz(prevPoint, self.bounds.size);
-			prevPoint = scalePoint(prevPoint, self.bounds.size, size);
-			
-			CGContextSetStrokeColor(ctx, CGColorGetComponents([UIColor yellowColor].CGColor));
-			CGContextSetLineCap(ctx, kCGLineCapRound);
-			CGContextSetLineWidth(ctx, 2 * _radius);
-			CGContextMoveToPoint(ctx, prevPoint.x, prevPoint.y);
-			CGContextAddLineToPoint(ctx, rect.origin.x, rect.origin.y);
+            [self.touchPoints addObject:[NSValue valueWithCGPoint:touchPoint]];
+            // then touch moved, we draw superior-width line
+            CGContextSetStrokeColor(ctx, CGColorGetComponents([UIColor yellowColor].CGColor));
+            CGContextSetLineCap(ctx, kCGLineCapRound);
+            CGContextSetLineWidth(ctx, 2 * _radius);
+//            CGContextMoveToPoint(ctx, prevPoint.x, prevPoint.y);
+//            CGContextAddLineToPoint(ctx, rect.origin.x, rect.origin.y);
+            
+            while(self.touchPoints.count > 3){
+                CGPoint bezier[4];
+                bezier[0] = ((NSValue*)self.touchPoints[1]).CGPointValue;
+                bezier[3] = ((NSValue*)self.touchPoints[2]).CGPointValue;
+                
+                CGFloat k = 0.3;
+                CGFloat len = sqrt(pow(bezier[3].x - bezier[0].x, 2) + pow(bezier[3].y - bezier[0].y, 2));
+                bezier[1] = ((NSValue*)self.touchPoints[0]).CGPointValue;
+                bezier[1] = [self normalizeVector:CGPointMake(bezier[0].x - bezier[1].x - (bezier[0].x - bezier[3].x), bezier[0].y - bezier[1].y - (bezier[0].y - bezier[3].y) )];
+                bezier[1].x *= len * k;
+                bezier[1].y *= len * k;
+                bezier[1].x += bezier[0].x;
+                bezier[1].y += bezier[0].y;
+                
+                bezier[2] = ((NSValue*)self.touchPoints[3]).CGPointValue;
+                bezier[2] = [self normalizeVector:CGPointMake( (bezier[3].x - bezier[2].x)  - (bezier[3].x - bezier[0].x), (bezier[3].y - bezier[2].y)  - (bezier[3].y - bezier[0].y) )];
+                bezier[2].x *= len * k;
+                bezier[2].y *= len * k;
+                bezier[2].x += bezier[3].x;
+                bezier[2].y += bezier[3].y;
+                
+                CGContextMoveToPoint(ctx, bezier[0].x, bezier[0].y);
+                CGContextAddCurveToPoint(ctx, bezier[1].x, bezier[1].y, bezier[2].x, bezier[2].y, bezier[3].x, bezier[3].y);
+                
+                [self.touchPoints removeObjectAtIndex:0];
+            }
+            
 			CGContextStrokePath(ctx);
-			
+            
+            CGPoint prevPoint = [touch previousLocationInView:self];
+            prevPoint = fromUItoQuartz(prevPoint, self.bounds.size);
+            prevPoint = scalePoint(prevPoint, self.bounds.size, size);
+
 			static const FillTileWithTwoPointsFunc fillTileFunc = (FillTileWithTwoPointsFunc) [self methodForSelector:@selector(fillTileWithTwoPoints:end:)];
-			(*fillTileFunc)(self,@selector(fillTileWithTwoPoints:end:),rect.origin, prevPoint);
+			(*fillTileFunc)(self,@selector(fillTileWithTwoPoints:end:),touchPoint, prevPoint);
 		}
 	}
 
