@@ -284,7 +284,14 @@ inline CGPoint scalePoint(CGPoint point, CGSize previousSize, CGSize currentSize
 	
 	// iterate on points between begin and end
 	CGPoint i = begin;
-	while(i.x <= end.x && i.y <= end.y){
+    /*
+     * WAS `while(i.x <= end.x && i.y <= end.y)`
+     * changed (`=` removed) to the code below because of an issue on iPhone 6S
+     * On iPhone 6S it happens very often that because of the screen's
+     * preciseness, begin.x equals to end.x and same for y which causes
+     * unsatisfied while condition resulting a memory error
+     */
+	while(i.x < end.x && i.y < end.y){
 		(*fillTileFunc)(self,@selector(fillTileWithPoint:),i);
 		i.x += incrementerForx;
 		i.y += incrementerFory;
