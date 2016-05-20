@@ -11,7 +11,7 @@ Feel free to get in touch with us in regards to any questions or cooperation req
 
 # Sample
 
-![Image](http://files.stage.mqd.me/scr_see_sample.png)
+![Image](https://raw.githubusercontent.com/moqod/ios-scratch-n-see/master/Sample.png)
 
 The project contains an example, but in general it's really simple.
 ``` objc
